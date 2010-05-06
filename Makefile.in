@@ -1,0 +1,323 @@
+%-32 : BITS = 32
+%-32 : ARCH = i386
+%-64 : BITS = 64
+%-64 : ARCH = x86_64
+%-32 %-64 : DISC = disc-$(BITS)
+RPMS_32_SELECTION = -name '*.i386.rpm' -o -name '*.i586.rpm' -o -name '*.i686.rpm'
+RPMS_64_SELECTION = -name '*.x86_64.rpm'
+
+ISOLINUX_FILES = \
+	splash.lss \
+	isolinux.cfg \
+	param.msg \
+	options.msg \
+	boot.msg
+
+all: all-32 all-64
+
+clean: clean-32 clean-64
+
+all-% : disc-% \
+	rm-rpms-% \
+	cp-download-rpms-% \
+	cp-sipx-rpms-% \
+	update-repo-% \
+	update-files-% \
+	iso-%;
+
+clean-% :
+	! test -d $(DISC) || rm -rf $(DISC)
+	! test -d download-$* || rm -rf download-$*
+	! test -f sipxecs-$*.iso || rm sipxecs-$*.iso
+
+rm-rpms-% : disc-%
+	-rm $(foreach P,$(REMOVE_LIST),$(DISC)/CentOS/$(P)) 2>/dev/null || true
+
+disc-% :
+	test -d cd || mkdir cd
+	! test -d cd.tmp || rm -rf cd.tmp
+	sudo mount -o loop $(wildcard @ISO_DIR@/CentOS-*-$(ARCH)-bin-1of*.iso) cd
+	@echo "copying contents of disc..."
+	cp -ar cd cd.tmp
+	sudo umount cd
+	mv cd.tmp $@
+
+cp-download-rpms-% : download-%
+	cp download-$*/*.rpm $(DISC)/CentOS
+
+cp-sipx-rpms-% : disc-%
+	find $(realpath @REPO_DIR@) \
+	\( \
+	  $(RPMS_$(BITS)_SELECTION) \
+	  -o -name '*.noarch.rpm' \
+        \) -and -not \( \
+	  -name '*debug*' \
+	  -o -name '*devel*' \
+	  -o -name '*xerces-c-doc*' \
+	  -o -name '*cppunit*' \
+	  -o -name '*nsis*' \
+	  -o -name '*rrdtool-doc*' \
+	  -o -name '*rubygem-rake*' \
+	  -o -name '*scons*' \
+	  -o -name '*sun-alsa*' \
+	  -o -name '*sun-demo*' \
+	  -o -name '*sun-jdbc*' \
+	  -o -name '*sun-plugin*' \
+	  -o -name '*sun-src*' \
+        \) \
+	-exec cp {}  $(DISC)/CentOS \;
+
+update-repo-% : disc-%
+	MEDIA_ID=$(shell head -1 $(DISC)/.discinfo); \
+	  cd $(DISC); \
+	  @CREATEREPO@ --baseurl="media://$$MEDIA_ID" \
+	    -g ./repodata/comps.xml .
+
+update-files-% :
+	m4 src/ks.m4 > $(DISC)/ks.cfg
+	m4 -D manual-format src/ks.m4 > $(DISC)/ks-manual-format.cfg
+	for f in $(ISOLINUX_FILES); do \
+	  cp -f src/$$f $(DISC)/isolinux/$$f; \
+	done
+
+iso-% :
+	chmod u+w $(DISC)/isolinux/isolinux.bin
+	mkisofs -R -J -T -no-emul-boot -boot-load-size 4 -boot-info-table \
+	  -V "CentOS sipX @PACKAGE_VERSION@" \
+	  -A "CentOS sipx @PACKAGE_VERSION@" \
+	  -P "yourname@example.com" \
+	  -p "yourname@example.com" \
+	  -b "isolinux/isolinux.bin" \
+	  -c "isolinux/boot.cat" \
+	  -x "lost+found" \
+	  -o $@.tmp $(DISC)
+	mv $@.tmp sipxecs-$*.iso
+
+download-% :
+	! test -d $@.tmp || rm -rf $@.tmp
+	mkdir $@.tmp
+	cd $@.tmp; \
+	  for site in extras/$(ARCH)/RPMS/ os/$(ARCH)/CentOS; do \
+	    wget -r -nc -nv -nH -nd -l1 --no-parent \
+	      -A "$(foreach P,$(ADD_LIST),$(P),) bogus" \
+	      -R "*devel*, *debug*" \
+	      http://centos.mirror.netriplex.com/5.4/$$site; \
+	  done
+	mv $@.tmp $@
+
+REMOVE_LIST = \
+  GConf2-* \
+  NetworkManager-* \
+  ORBit2-* \
+  PyQt-* \
+  PyXML-* \
+  SDL-* \
+  aspell-* \
+  atk-* \
+  audiofile-* \
+  avahi-* \
+  bitstream-vera-fonts-* \
+  bluez-* \
+  brlapi-* \
+  cadaver-* \
+  cdda2wav-* \
+  cdparanoia-* \
+  cdrdao-* \
+  cdrecord-* \
+  centos-release-notes* \
+  comps-extras-* \
+  coolkey-* \
+  cpp-* \
+  dbus-x11-* \
+  dcraw-* \
+  desktop-backgrounds-basic-* \
+  desktop-file-utils-* \
+  dmraid-events-* \
+  dnsmasq-* \
+  dvd+rw-tools-* \
+  ecryptfs-utils-* \
+  elinks-* \
+  enscript-* \
+  esound-* \
+  festival-* \
+  fetchmail-* \
+  fipscheck-* \
+  flac-* \
+  glx-utils-* \
+  gnome-* \
+  gnupg-* \
+  gphoto2-* \
+  gstreamer-* \
+  gtk2-* \
+  hicolor-icon-theme-* \
+  hmaccalc-* \
+  hpijs-* \
+  htmlview-* \
+  hwdata-* \
+  ibmasm-* \
+  ifd-egate-* \
+  iscsi-initiator-utils-* \
+  iso-codes-* \
+  jwhois-* \
+  kernel-PAE-* \
+  kernel-debug-* \
+  kernel-devel-* \
+  kernel-doc-* \
+  kernel-headers-* \
+  kernel-xen-* \
+  libselinux-utils-* \
+  lftp-* \
+  libIDL-* \
+  libXScrnSaver-* \
+  libXTrap-* \
+  libXaw-* \
+  libXcursor-* \
+  libXdamage-* \
+  libXevie-* \
+  libXfixes-* \
+  libXfontcache-* \
+  libXinerama-* \
+  libXmu-* \
+  libXrandr-* \
+  libXres-* \
+  libXtst-* \
+  libXv-* \
+  libXxf86dga-* \
+  libXxf86misc-* \
+  libao-* \
+  libavc1394-* \
+  libbonobo-* \
+  libcroco-* \
+  libdaemon-* \
+  libdmx-* \
+  libdv-* \
+  libexif-* \
+  libgtop2-* \
+  libiec61883-* \
+  libieee1284-* \
+  libmng-* \
+  libmusicbrainz-* \
+  libnotify-* \
+  libogg-* \
+  liboil-* \
+  libraw1394-* \
+  libsilc-* \
+  libsoup-* \
+  libtheora-* \
+  libvorbis-* \
+  libwnck-* \
+  libxkbfile-* \
+  libxklavier-* \
+  lockdev-* \
+  meanwhile-* \
+  mesa-libGLU-* \
+  mkisofs-* \
+  mlocate-* \
+  module-init-tools-* \
+  mutt-* \
+  neon-* \
+  netpbm-* \
+  notification-daemon-* \
+  nscd-* \
+  nss-tools-* \
+  nss_ldap-* \
+  opal-* \
+  pam_pkcs11-* \
+  pcsc-lite-libs-* \
+  perl-String-CRC32-* \
+  pilot-link-* \
+  pinfo-* \
+  psutils-* \
+  pwlib-* \
+  pycairo-* \
+  pyorbit-* \
+  python-ldap-* \
+  python-numeric-* \
+  pyxf86config-* \
+  qt-* \
+  quota-* \
+  redhat-menus-6* \
+  rsh-* \
+  samba-common-* \
+  pkinit-nss-* \
+  sgpio-* \
+  shadow-utils-* \
+  shared-mime-info-* \
+  sip-* \
+  slrn-* \
+  smartmontools-* \
+  sox-* \
+  specspo-* \
+  speex-* \
+  startup-notification-* \
+  tk-* \
+  trousers-* \
+  udftools-* \
+  vim-enhanced-* \
+  vim-common-* \
+  vorbis-tools-* \
+  words-* \
+  wpa_supplicant-* \
+  xkeyboard-config-* \
+  xorg-x11-server-utils-* \
+  xorg-x11-twm-* \
+  xorg-x11-utils-* \
+  xorg-x11-xauth-* \
+  xorg-x11-xinit-* \
+  xorg-x11-xkb-utils-* \
+  scons-* \
+  nsis-* \
+  cyrus-sasl-md5-* \
+  lcms-* \
+  ksh-* \
+  cups-* \
+  stunnel-* \
+  rsyslog-*
+
+ADD_LIST = \
+  alsa-utils-* \
+  apr-util-* \
+  beecrypt-4* \
+  binutils-* \
+  bind-9* \
+  caching-nameserver-* \
+  chkfontpath-* \
+  dhcp-* \
+  distcache-* \
+  gdb-* \
+  httpd-2* \
+  hwdata-* \
+  jpackage-utils-* \
+  lm_sensors-* \
+  mlocate-* \
+  mod_ssl-* \
+  module-init-tools-* \
+  mrtg-* \
+  net-snmp-5* \
+  net-snmp-libs* \
+  net-snmp-utils* \
+  ntp-* \
+  perl-IO-Socket-INET6-* \
+  perl-Socket6-* \
+  postgresql-8* \
+  postgresql-odbc-* \
+  postgresql-libs-* \
+  postgresql-server-* \
+  quota-* \
+  rcs-* \
+  rsh-0* \
+  ruby-1.8.5-* \
+  ruby-irb-* \
+  ruby-libs-* \
+  ruby-rdoc-* \
+  shadow-utils-* \
+  strace-* \
+  sysstat-* \
+  tftp-server-* \
+  unixODBC-2* \
+  vsftpd-* \
+  w3c-libwww-* \
+  xinetd-* \
+  xorg-x11-xfs-1* \
+  yum-basearchonly-* \
+  yum-downloadonly-*

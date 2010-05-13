@@ -6,6 +6,7 @@
 RPMS_32_SELECTION = -name '*.i386.rpm' -o -name '*.i586.rpm' -o -name '*.i686.rpm'
 RPMS_64_SELECTION = -name '*.x86_64.rpm'
 
+# very initial boot menu and graphics
 ISOLINUX_FILES = \
 	splash.lss \
 	isolinux.cfg \
@@ -13,10 +14,12 @@ ISOLINUX_FILES = \
 	options.msg \
 	boot.msg
 
+# default target, build both 32 and 64 bit cds
 all: all-32 all-64
 
 clean: clean-32 clean-64
 
+# tasks for 32 and 64 iso creation
 all-% : disc-% \
 	rm-rpms-% \
 	cp-download-rpms-% \
@@ -25,14 +28,17 @@ all-% : disc-% \
 	update-files-% \
 	iso-%;
 
+# force a rebuild of entire cd
 clean-% :
 	! test -d $(DISC) || rm -rf $(DISC)
 	! test -d download-$* || rm -rf download-$*
 	! test -f sipxecs-$*.iso || rm sipxecs-$*.iso
 
+# remove all rpms off disc that are not needed for operation
 rm-rpms-% : disc-%
 	-rm $(foreach P,$(REMOVE_LIST),$(DISC)/CentOS/$(P)) 2>/dev/null || true
 
+# need to make a copy of entire disc so we can modify
 disc-% :
 	test -d cd || mkdir cd
 	! test -d cd.tmp || rm -rf cd.tmp
@@ -42,9 +48,11 @@ disc-% :
 	sudo umount cd
 	mv cd.tmp $@
 
+# add in downloaded rpms
 cp-download-rpms-% : download-%
 	cp download-$*/*.rpm $(DISC)/CentOS
 
+# add sipx and custom dependencies needed for sipx operation, not sipx devel
 cp-sipx-rpms-% : disc-%
 	find $(realpath @REPO_DIR@) \
 	\( \
@@ -67,12 +75,14 @@ cp-sipx-rpms-% : disc-%
         \) \
 	-exec cp {}  $(DISC)/CentOS \;
 
+# rebuild yum repo after all rpms have been added and removed
 update-repo-% : disc-%
 	MEDIA_ID=$(shell head -1 $(DISC)/.discinfo); \
 	  cd $(DISC); \
 	  @CREATEREPO@ --baseurl="media://$$MEDIA_ID" \
 	    -g ./repodata/comps.xml .
 
+# add modifications to disc to make it operate
 update-files-% :
 	m4 src/ks.m4 > $(DISC)/ks.cfg
 	m4 -D manual-format src/ks.m4 > $(DISC)/ks-manual-format.cfg
@@ -80,6 +90,7 @@ update-files-% :
 	  cp -f src/$$f $(DISC)/isolinux/$$f; \
 	done
 
+# assemble iso file
 iso-% :
 	chmod u+w $(DISC)/isolinux/isolinux.bin
 	mkisofs -R -J -T -no-emul-boot -boot-load-size 4 -boot-info-table \
@@ -93,6 +104,7 @@ iso-% :
 	  -o $@.tmp $(DISC)
 	mv $@.tmp sipxecs-$*.iso
 
+# Down rpms that are not on disc 1
 download-% :
 	! test -d $@.tmp || rm -rf $@.tmp
 	mkdir $@.tmp
@@ -105,6 +117,8 @@ download-% :
 	  done
 	mv $@.tmp $@
 
+# Remove these pacakges to make room for sipx rpms. The list grows as sipx does
+# each addition has to be tested to ensure it's not critical to system operation
 REMOVE_LIST = \
   GConf2-* \
   NetworkManager-* \
@@ -128,6 +142,7 @@ REMOVE_LIST = \
   comps-extras-* \
   coolkey-* \
   cpp-* \
+  cyrus-sasl-md5-* \
   dbus-x11-* \
   dcraw-* \
   desktop-backgrounds-basic-* \
@@ -141,7 +156,6 @@ REMOVE_LIST = \
   esound-* \
   festival-* \
   fetchmail-* \
-  fipscheck-* \
   flac-* \
   glx-utils-* \
   gnome-* \
@@ -267,13 +281,17 @@ REMOVE_LIST = \
   xorg-x11-xkb-utils-* \
   scons-* \
   nsis-* \
-  cyrus-sasl-md5-* \
   lcms-* \
   ksh-* \
   cups-* \
   stunnel-* \
   rsyslog-*
 
+# rpms that are not on disc 1 of 32 or 64 bit cds
+#
+# Note, this list controls 32 and 64 bit lists so if 32 bit does not need
+# to download but 64 bit does, it will be in this list and 32 bit download will simply
+# be redundant.
 ADD_LIST = \
   alsa-utils-* \
   apr-util-* \

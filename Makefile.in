@@ -102,7 +102,7 @@ iso-% :
 	  -c "isolinux/boot.cat" \
 	  -x "lost+found" \
 	  -o $@.tmp $(DISC)
-	mv $@.tmp sipxecs-$*.iso
+	mv $@.tmp @DIST_DIR@/sipxecs-$(ARCH).iso
 
 # Down rpms that are not on disc 1
 download-% :

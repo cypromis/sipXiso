@@ -15,6 +15,13 @@ fi
 if [ ! test -d $REPO_DIR ]; then
    AC_MSG_ERROR(Directory $REPO_DIR is missing)
 fi
+AC_ARG_WITH([distdir],
+  AC_HELP_STRING([--with-distdir=directory], 
+    [Directory to output distribution output ISO files]),
+  [DIST_DIR=${withval}],
+  [DIST_DIR=.]
+)
+AC_SUBST([DIST_DIR])
 if [ ! grep -q CentOS /etc/redhat-release 2>/dev/null ] ; then
    AC_MSG_ERROR(This needs to be run on CentOS machine only)
 fi

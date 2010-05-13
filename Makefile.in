@@ -113,7 +113,7 @@ download-% :
 	    wget -r -nc -nv -nH -nd -l1 --no-parent \
 	      -A "$(foreach P,$(ADD_LIST),$(P),) bogus" \
 	      -R "*devel*, *debug*" \
-	      http://centos.mirror.netriplex.com/5.4/$$site; \
+	      http://centos.aol.com/5.4/$$site; \
 	  done
 	mv $@.tmp $@
 

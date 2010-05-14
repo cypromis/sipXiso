@@ -1,3 +1,26 @@
+define(`sipx_packages', 
+e2fsprogs
+grub
+kernel
+ntp
+dhcp
+bind
+caching-nameserver
+gdb
+strace
+yum-downloadonly
+java-1.6.0-sun
+java-1.6.0-sun-fonts
+)
+define(`repo_file',
+[sipXecs]
+name=sipXecs build service for CentOS $releasever - $basearch
+baseurl=http://download.ezuce.com/sipfoundry/4.2.1/CentOS_$releasever/
+enabled=1
+gpgcheck=0
+)
+define(`welcome_message', `Welcome to SIPfoundry sipXecs')
+sinclude(`oem.m4')
 ##################################################
 ###
 ### Kickstart configuration file
@@ -52,20 +75,8 @@ reboot
 
 #--- Package selection
 %packages --resolvedeps
-e2fsprogs
-grub
-kernel
-ntp
-dhcp
-bind
-caching-nameserver
-gdb
-strace
-yum-downloadonly
-java-1.6.0-sun
-java-1.6.0-sun-fonts
 
-sipxecs
+sipx_packages()
 
 #--- Pre-installation script
 %pre
@@ -79,9 +90,13 @@ echo -e "\n/usr/bin/sipxecs-setup-system\n" >> /root/.bashrc
 # the script removes itself from the root .bashrc file when it completes
 
 #... Add logon message
-echo -e "\nWelcome to SIPfoundry sipXecs\n" >> /etc/issue
+echo -e "\n welcome_message() \n" >> /etc/issue
 echo -e   "=============================\n" >> /etc/issue
 echo -e "\nFirst time logon: user = root     password = setup\n\n" >> /etc/issue
+
+echo > /etc/yum.repos.d/repo_filename() <<EOF
+repo_contents()
+EOF
 
 #... Boot kernel in quiet mode
 sed -i 's/ro root/ro quiet root/g' /boot/grub/grub.conf

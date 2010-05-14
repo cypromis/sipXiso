@@ -1,18 +1,33 @@
+#
+# Copyright (c) 2010 eZuce, Inc. All rights reserved.
+#
+# This library is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation; either version 2.1 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+include @OEM_MAK@ iso.mak
 %-32 : BITS = 32
 %-32 : ARCH = i386
 %-64 : BITS = 64
 %-64 : ARCH = x86_64
 %-32 %-64 : DISC = disc-$(BITS)
+%-32 %-54 : ISO ?= $(ISO_LABEL)-@PACKAGE_VERSION@-$(ARCH).iso
 RPMS_32_SELECTION = -name '*.i386.rpm' -o -name '*.i586.rpm' -o -name '*.i686.rpm'
 RPMS_64_SELECTION = -name '*.x86_64.rpm'
 
 # very initial boot menu and graphics
 ISOLINUX_FILES = \
-	splash.lss \
-	isolinux.cfg \
-	param.msg \
-	options.msg \
-	boot.msg
+	$(SPLASH_FILE) \
+	src/isolinux.cfg \
+	src/param.msg \
+	src/options.msg \
+	src/boot.msg
 
 # default target, build both 32 and 64 bit cds
 all: all-32 all-64
@@ -32,7 +47,7 @@ all-% : disc-% \
 clean-% :
 	! test -d $(DISC) || rm -rf $(DISC)
 	! test -d download-$* || rm -rf download-$*
-	! test -f sipxecs-$*.iso || rm sipxecs-$*.iso
+	! test -f @DIST_DIR@/$(ISO) || rm @DIST_DIR@/$(ISO)
 
 # remove all rpms off disc that are not needed for operation
 rm-rpms-% : disc-%
@@ -84,25 +99,26 @@ update-repo-% : disc-%
 
 # add modifications to disc to make it operate
 update-files-% :
-	m4 src/ks.m4 > $(DISC)/ks.cfg
-	m4 -D manual-format src/ks.m4 > $(DISC)/ks-manual-format.cfg
+	m4 @M4_OEM_OPTS@ src/ks.m4 > $(DISC)/ks.cfg
+	m4 @M4_OEM_OPTS@ -D manual-format src/ks.m4 > $(DISC)/ks-manual-format.cfg
 	for f in $(ISOLINUX_FILES); do \
-	  cp -f src/$$f $(DISC)/isolinux/$$f; \
+	  cp -f $$f $(DISC)/isolinux/`basename $$f`; \
 	done
 
 # assemble iso file
 iso-% :
 	chmod u+w $(DISC)/isolinux/isolinux.bin
 	mkisofs -R -J -T -no-emul-boot -boot-load-size 4 -boot-info-table \
-	  -V "CentOS sipX @PACKAGE_VERSION@" \
-	  -A "CentOS sipx @PACKAGE_VERSION@" \
-	  -P "yourname@example.com" \
-	  -p "yourname@example.com" \
+	  -V $(VOLUME_LABEL) \
+	  -A $(APPLICATION_LABEL) \
+	  -P $(PUBLISHER_ID) \
+	  -p $(PREPARER_ID) \
 	  -b "isolinux/isolinux.bin" \
 	  -c "isolinux/boot.cat" \
 	  -x "lost+found" \
 	  -o $@.tmp $(DISC)
-	mv $@.tmp @DIST_DIR@/sipxecs-$(ARCH).iso
+	mv $@.tmp @DIST_DIR@/$(ISO)
+
 
 # Down rpms that are not on disc 1
 download-% :

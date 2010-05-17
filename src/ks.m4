@@ -11,15 +11,25 @@ strace
 yum-downloadonly
 java-1.6.0-sun
 java-1.6.0-sun-fonts
+sipxecs
 )
-define(`repo_file',
+
+define(`repo_filename',`sipxecs.repo')
+define(`repo_contents',
 [sipXecs]
 name=sipXecs build service for CentOS $releasever - $basearch
-baseurl=http://download.ezuce.com/sipfoundry/4.2.1/CentOS_$releasever/
+baseurl=http://download.ezuce.com/sipfoundry/PACKAGE_VERSION()/CentOS_$releasever/
 enabled=1
 gpgcheck=0
 )
-define(`welcome_message', `Welcome to SIPfoundry sipXecs')
+
+define(`welcome_message',
+ 
+Welcome to SIPfoundry sipXecs
+=============================
+First time logon: user = root     password = setup
+
+)
 sinclude(`oem.m4')
 ##################################################
 ###
@@ -75,7 +85,6 @@ reboot
 
 #--- Package selection
 %packages --resolvedeps
-
 sipx_packages()
 
 #--- Pre-installation script
@@ -90,11 +99,11 @@ echo -e "\n/usr/bin/sipxecs-setup-system\n" >> /root/.bashrc
 # the script removes itself from the root .bashrc file when it completes
 
 #... Add logon message
-echo -e "\n welcome_message() \n" >> /etc/issue
-echo -e   "=============================\n" >> /etc/issue
-echo -e "\nFirst time logon: user = root     password = setup\n\n" >> /etc/issue
+cat >> /etc/issue <<EOF
+welcome_message()
+EOF
 
-echo > /etc/yum.repos.d/repo_filename() <<EOF
+cat > /etc/yum.repos.d/repo_filename() <<EOF
 repo_contents()
 EOF
 

@@ -20,6 +20,9 @@ include @OEM_MAK@ iso.mak
 %-32 %-54 : ISO ?= $(ISO_LABEL)-@PACKAGE_VERSION@-$(ARCH).iso
 RPMS_32_SELECTION = -name '*.i386.rpm' -o -name '*.i586.rpm' -o -name '*.i686.rpm'
 RPMS_64_SELECTION = -name '*.x86_64.rpm'
+M4_OPTS = \
+	@M4_OEM_OPTS@ \
+	-D PACAKGE_VERSION=@PACKAGE_VERSION@
 
 # very initial boot menu and graphics
 ISOLINUX_FILES = \
@@ -99,8 +102,8 @@ update-repo-% : disc-%
 
 # add modifications to disc to make it operate
 update-files-% :
-	m4 @M4_OEM_OPTS@ src/ks.m4 > $(DISC)/ks.cfg
-	m4 @M4_OEM_OPTS@ -D manual-format src/ks.m4 > $(DISC)/ks-manual-format.cfg
+	m4 $(M4_OPTS) src/ks.m4 > $(DISC)/ks.cfg
+	m4 $(M4_OPTS) -D manual-partition src/ks.m4 > $(DISC)/ks-manual-format.cfg
 	for f in $(ISOLINUX_FILES); do \
 	  cp -f $$f $(DISC)/isolinux/`basename $$f`; \
 	done
@@ -112,7 +115,7 @@ iso-% :
 	  -V $(VOLUME_LABEL) \
 	  -A $(APPLICATION_LABEL) \
 	  -P $(PUBLISHER_ID) \
-	  -p $(PREPARER_ID) \
+	  -p $(PREPARERER_ID) \
 	  -b "isolinux/isolinux.bin" \
 	  -c "isolinux/boot.cat" \
 	  -x "lost+found" \

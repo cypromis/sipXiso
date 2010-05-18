@@ -17,7 +17,7 @@ include @OEM_MAK@ iso.mak
 %-64 : BITS = 64
 %-64 : ARCH = x86_64
 %-32 %-64 : DISC = disc-$(BITS)
-%-32 %-54 : ISO ?= $(ISO_LABEL)-@PACKAGE_VERSION@-$(ARCH).iso
+%-32 %-64 : ISO ?= $(ISO_LABEL)-@PACKAGE_VERSION@-$(ARCH).iso
 RPMS_32_SELECTION = -name '*.i386.rpm' -o -name '*.i586.rpm' -o -name '*.i686.rpm'
 RPMS_64_SELECTION = -name '*.x86_64.rpm'
 M4_OPTS = \

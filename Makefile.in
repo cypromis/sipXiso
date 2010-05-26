@@ -37,6 +37,8 @@ all: all-32 all-64
 
 clean: clean-32 clean-64
 
+clean-all: clean-32 clean-download-32 clean-64 clean-download-64
+
 # tasks for 32 and 64 iso creation
 all-% : disc-% \
 	rm-rpms-% \
@@ -46,11 +48,12 @@ all-% : disc-% \
 	update-files-% \
 	iso-%;
 
+clean-download-% :
+	! test -d download-$* || rm -rf download-$*
+
 # force a rebuild of entire cd
 clean-% :
 	! test -d $(DISC) || rm -rf $(DISC)
-	! test -d download-$* || rm -rf download-$*
-	! test -f @DIST_DIR@/$(ISO) || rm @DIST_DIR@/$(ISO)
 
 # remove all rpms off disc that are not needed for operation
 rm-rpms-% : disc-%

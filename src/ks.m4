@@ -17,8 +17,8 @@ sipxecs
 define(`repo_filename',`sipxecs.repo')
 define(`repo_contents',
 [sipXecs]
-name=sipXecs build service for CentOS $releasever - $basearch
-baseurl=http://download.ezuce.com/sipfoundry/PACKAGE_VERSION()/CentOS_$releasever/
+name=sipXecs build service for CentOS \$releasever - \$basearch
+baseurl=http://download.ezuce.com/sipfoundry/PACKAGE_VERSION()/CentOS_\$releasever/
 enabled=1
 gpgcheck=0
 )

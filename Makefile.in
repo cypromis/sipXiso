@@ -201,7 +201,6 @@ REMOVE_LIST = \
   kernel-doc-* \
   kernel-headers-* \
   kernel-xen-* \
-  libselinux-utils-* \
   lftp-* \
   libIDL-* \
   libXScrnSaver-* \

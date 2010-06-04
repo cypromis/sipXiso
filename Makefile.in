@@ -46,7 +46,8 @@ all-% : disc-% \
 	cp-sipx-rpms-% \
 	update-repo-% \
 	update-files-% \
-	iso-%;
+	iso-% \
+	md5-%;
 
 clean-download-% :
 	! test -d download-$* || rm -rf download-$*
@@ -125,6 +126,8 @@ iso-% :
 	  -o $@.tmp $(DISC)
 	mv $@.tmp @DIST_DIR@/$(ISO)
 
+md5-% :
+	md5sum @DIST_DIR@/$(ISO) > @DIST_DIR@/$(ISO:%.iso=%.md5)
 
 # Down rpms that are not on disc 1
 download-% :

@@ -21,7 +21,7 @@ include @OEM_MAK@ iso.mak
 RPMS_32_SELECTION = -name '*.i386.rpm' -o -name '*.i586.rpm' -o -name '*.i686.rpm'
 RPMS_64_SELECTION = -name '*.x86_64.rpm'
 M4_OPTS = \
-	@M4_OEM_OPTS@ \
+	@OEM_M4_OPTS@ \
 	-D PACKAGE_VERSION=@PACKAGE_VERSION@
 
 # very initial boot menu and graphics

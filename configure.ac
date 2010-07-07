@@ -15,8 +15,10 @@ if test "x$REPO_DIR" == "x"; then
 fi
 AC_ARG_VAR(OEM_DIR, [Directory containing your OEM changes ])
 if test "x$OEM_DIR" != "x"; then
-   AC_SUBST(M4_OEM_OPTS,[-I $OEM_DIR])
-   AC_SUBST(OEM_MAK,[$OEM_DIR/iso.mak])
+   OEM_MAK="$OEM_DIR/iso.mak"
+   AC_SUBST(OEM_MAK)
+   OEM_M4_OPTS="-I $OEM_DIR"
+   AC_SUBST(OEM_M4_OPTS)
 fi
 if [ ! test -d $REPO_DIR ]; then
    AC_MSG_ERROR(Directory $REPO_DIR is missing)

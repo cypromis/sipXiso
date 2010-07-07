@@ -20,6 +20,7 @@ include @OEM_MAK@ iso.mak
 %-32 %-64 : ISO ?= $(ISO_LABEL)-@PACKAGE_VERSION@-$(ARCH).iso
 RPMS_32_SELECTION = -name '*.i386.rpm' -o -name '*.i586.rpm' -o -name '*.i686.rpm'
 RPMS_64_SELECTION = -name '*.x86_64.rpm'
+DOWNLOAD_URL = http://centos.aol.com/5.5
 M4_OPTS = \
 	@M4_OEM_OPTS@ \
 	-D PACKAGE_VERSION=@PACKAGE_VERSION@
@@ -138,7 +139,7 @@ download-% :
 	    wget -r -nc -nv -nH -nd -l1 --no-parent \
 	      -A "$(foreach P,$(ADD_LIST),$(P),) bogus" \
 	      -R "*devel*, *debug*" \
-	      http://centos.aol.com/5.4/$$site; \
+	      $(DOWNLOAD_URL)/$$site; \
 	  done
 	mv $@.tmp $@
 

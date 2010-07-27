@@ -1,4 +1,5 @@
 ISO_LABEL ?= sipxecs
+ISO_REV ?= $(shell date +%y%m%e)
 SPLASH_FILE ?= src/splash.lss
 VOLUME_LABEL ?= "CentOS sipX @PACKAGE_VERSION@"
 APPLICATION_LABEL ?= "CentOS sipX @PACKAGE_VERSION@"
